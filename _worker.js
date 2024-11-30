@@ -4,7 +4,7 @@ import { connect } from "cloudflare:sockets";
 var listProxy = [
   { path: "/MALASIA", proxy: "166.88.35.141:8080" },
   { path: "/INDONESIA", proxy: "172.232.239.151:587" },
-  { path: "/SINGAPORE", proxy: "188.166.255.195:8080" },
+  { path: "/SINGAPORE", proxy: "143.198.213.197:8443" },
   // tambahkan sendiri
 ];
 

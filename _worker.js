@@ -2,9 +2,36 @@
 import { connect } from "cloudflare:sockets";
 var listProxy = [
   { path: "/MALASIA", proxy: "166.88.35.141" },
-  { path: "/INDONESIA", proxy: "103.133.223.52:2096" },
+  { path: "/INDONESIA", proxy: "103.133.223.52" },
   { path: "/SINGAPORE", proxy: "188.166.255.195" },
+  { path: "/contoh", proxy: "167.71.194.185:8443" },
+  { path: "/id-akm", proxy: "172.232.238.169" },
+  { path: "/sg-byt", proxy: "89.34.227.166" },
+  { path: "/id-tsel", proxy: "104.99.183.32" },
+  { path: "/sgaka1", proxy: "23.62.148.32" },
+  { path: "/my1", proxy: "23.194.124.32" },
+  { path: "/sgtcc", proxy: "45.77.36.40" },
+  { path: "/sgtencent", proxy: "43.134.34.18" },
+  { path: "/IFOG", proxy: "103.180.193.56" },
+  { path: "/REGXA", proxy: "206.206.76.139" },
+  { path: "/CONTABO-SG", proxy: "84.247.146.84" },
+  { path: "/sgalibaba", proxy: "8.222.155.206" },
+  { path: "/sgakamai", proxy: "172.104.191.203" },
+  { path: "/idakamai", proxy: "172.232.238.169" },
+  { path: "/sghz", proxy: "5.223.41.89" },
+  { path: "/GCPID", proxy: "35.219.50.99" },
+  { path: "/my2", proxy: "210.186.12.244" },
+  { path: "/CDSGLOBALSG", proxy: "164.52.2.100" },
+  { path: "/sgovhsas", proxy: "51.79.254.182" },
+  { path: "/sgdo", proxy: "104.248.145.216" },
+  { path: "/sgnpo", proxy: "185.217.5.3" },
+  { path: "/sgmegalayer", proxy: "103.40.11.97" },
+  { path: "/sgoracle", proxy: "129.150.50.63" },
+  { path: "/sgaryaka", proxy: "185.114.78.230" },
+  { path: "/sgbelnet", proxy: "194.36.179.237" },
+  { path: "/sgamazon", proxy: "52.74.101.26" }
   //tambahin sendiri
+  
 ];
 var proxyIP;
 var worker_default = {

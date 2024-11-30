@@ -45,7 +45,7 @@ async function getAllConfigVless(hostName) {
       const response = await fetch(`http://ip-api.com/json/${proxyAddress}`);
       const data = await response.json();
       const pathFixed = encodeURIComponent(path);
-      const vlessTls = `vless://${generateUUIDv4()}@Quiz.vidio.com:443?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=${hostName}#${data.isp} (${hostName})`;
+      const vlessTls = `vless://${generateUUIDv4()}@Quiz.vidio.com:443?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=${pathFixed}#${hostName} (${data.countryCode})`;
       const vlessNtls = `vless://${generateUUIDv4()}@${hostName}:80?path=${pathFixed}&security=none&encryption=none&host=${hostName}&fp=randomized&type=ws#${data.isp} (${data.countryCode})`;
       const vlessTlsFixed = vlessTls.replace(/ /g, "+");
       const vlessNtlsFixed = vlessNtls.replace(/ /g, "+");

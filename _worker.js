@@ -379,7 +379,7 @@ async function getAllConfigVless(hostName) {
             <button class="button" onclick="showContent('vless')">VERSI VLESS</button>
             <button class="button" onclick="showContent('clash')">VERSI CLASH</button>
         </div>
-        <center><a href="https:https://wa.link/d982tb" class="button">WHATSAPP</a> <a href="https://m.facebook.com/ariy.tool/" class="button">FACEBOOK</a></center><br>
+        <center><a href="https://wa.link/d982tb" class="button">WHATSAPP</a> <a href="https://m.facebook.com/ariy.tool/" class="button">FACEBOOK</a></center><br>
         <div class="config-section">
         <strong>LIST WILLCARD : </strong><br>
         <br>

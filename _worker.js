@@ -5,7 +5,7 @@ var listProxy = [
   { path: "/MALASIA", proxy: "45.195.69.98:30726" },
   { path: "/INDONESIA", proxy: "172.232.239.151:587" },
   { path: "/SINGAPORE", proxy: "143.198.213.197:8443" },
-   { path: "/SINGAPORE", proxy: "203.190.242.211:8080" },
+   { path: "/INDONESIA1", proxy: "203.190.242.211:8080" },
   // tambahkan sendiri
 ];
 

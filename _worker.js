@@ -1,13 +1,41 @@
 // worker.js
 import { connect } from "cloudflare:sockets";
-
 var listProxy = [
-  { path: "/MALASIA", proxy: "45.195.69.98:30726" },
-  { path: "/INDONESIA", proxy: "172.232.239.151:587" },
-  { path: "/SINGAPORE", proxy: "143.198.213.197:8443" },
-  // tambahkan sendiri
+  { path: "", proxy: "167.71.194.185:8443" },  
+  { path: "147.139.245.56:443", proxy: "147.139.245.56:443" },
+  { path: "103.67.79.230:443", proxy: "103.67.79.230:443" },  
+  { path: "203.194.112.119:8443", proxy: "203.194.112.119:8443" },
+  { path: "111.95.40.14:32414", proxy: "111.95.40.14:32414" },
+  { path: "103.186.1.209:8443", proxy: "103.186.1.209:8443" },
+  { path: "35.219.50.99:443", proxy: "35.219.50.99:443" },
+  { path: "35.219.15.90:443", proxy: "35.219.15.90:443" },
+  { path: "210.186.12.244:443", proxy: "210.186.12.244:443" },
+  { path: "166.88.35.141:443", proxy: "166.88.35.141:443" },
+  { path: "167.71.194.185:8443", proxy: "167.71.194.185:8443" },
+  { path: "89.34.227.166:8443", proxy: "89.34.227.166:8443" },
+  { path: "45.77.36.40:443", proxy: "45.77.36.40:443" },
+  { path: "43.134.34.18:443", proxy: "43.134.34.18:443" },
+  { path: "103.180.193.56:443", proxy: "103.180.193.56:443" },
+  { path: "164.52.2.100:443", proxy: "164.52.2.100:443" },
+  { path: "51.79.254.182:443", proxy: "51.79.254.182:443" },
+  { path: "104.248.145.216:443", proxy: "104.248.145.216:443" },
+  { path: "185.217.5.3:443", proxy: "185.217.5.3:443" },
+  { path: "129.150.50.63:443", proxy: "129.150.50.63:443" },
+  { path: "185.114.78.230:443", proxy: "185.114.78.230:443" },
+  { path: "194.36.179.237:443", proxy: "194.36.179.237:443" },
+  { path: "52.74.101.26:443", proxy: "52.74.101.26:443" },
+  { path: "143.42.66.91:443", proxy: "143.42.66.91:443" },
+  { path: "178.128.80.43:443", proxy: "178.128.80.43:443" },
+  { path: "38.180.165.29:443", proxy: "38.180.165.29:443" },
+  { path: "185.103.109.139:443", proxy: "185.103.109.139:443" },
+  { path: "31.28.27.38:443", proxy: "31.28.27.38:443" },
+  { path: "146.56.169.198:443", proxy: "146.56.169.198:443" },
+  { path: "158.180.94.12:443", proxy: "158.180.94.12:443" },
+// batas
+  { path: "198.13.56.210:443", proxy: "198.13.56.210:443" },
+  { path: "35.73.102.80:443", proxy: "35.73.102.80:443" },
+  //tambahin sendiri
 ];
-
 var proxyIP;
 var worker_default = {
   async fetch(request, ctx) {
@@ -34,19 +62,17 @@ var worker_default = {
     }
   }
 };
-
 async function getAllConfigVless(hostName) {
   try {
     let vlessConfigs = "";
     let clashConfigs = "";
     for (const entry of listProxy) {
       const { path, proxy } = entry;
-      const [proxyAddress, proxyPort] = proxy.split(":");
-      const response = await fetch(`http://ip-api.com/json/${proxyAddress}`);
+      const response = await fetch(`http://ip-api.com/json/${proxy}`);
       const data = await response.json();
       const pathFixed = encodeURIComponent(path);
-      const vlessTls = `vless://${generateUUIDv4()}@Quiz.vidio.com:443?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=${pathFixed}#${hostName} (${data.countryCode})`;
-      const vlessNtls = `vless://${generateUUIDv4()}@${hostName}:80?path=${pathFixed}&security=none&encryption=none&host=${hostName}&fp=randomized&type=ws#${data.isp} (${data.countryCode})`;
+      const vlessTls = `vless://${generateUUIDv4()}@${hostName}:443?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=${pathFixed}#${data.isp} (${data.countryCode})`;
+      const vlessNtls = `vless://${generateUUIDv4()}@${hostName}:80?path=${pathFixed}&security=none&encryption=none&host=${hostName}&fp=randomized&type=ws&sni=${hostName}#${data.isp} (${data.countryCode})`;
       const vlessTlsFixed = vlessTls.replace(/ /g, "+");
       const vlessNtlsFixed = vlessNtls.replace(/ /g, "+");
       const clashConfTls = `- name: ${data.isp} (${data.countryCode})
@@ -54,6 +80,7 @@ async function getAllConfigVless(hostName) {
   port: 443
   type: vless
   uuid: ${generateUUIDv4()}
+  cipher: auto
   tls: true
   udp: true
   skip-cert-verify: true
@@ -68,7 +95,10 @@ async function getAllConfigVless(hostName) {
   port: 80
   type: vless
   uuid: ${generateUUIDv4()}
+  cipher: auto
+  tls: false
   udp: true
+  skip-cert-verify: true
   network: ws
   ws-opts:
     path: ${path}
@@ -132,17 +162,17 @@ async function getAllConfigVless(hostName) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Vless | Noir7R | CLoudFlare</title>
+    <title>Vless | XVPN | CLoudFlare</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTnHg4C+6PCWJ+8zzHcXQjXGp6n5Yh9rX0x5fOdPaOqO+e2X4R5C1aE/BSqPIG+8y3O6APa8w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="icon" href="https://raw.githubusercontent.com/AFRcloud/BG/main/icons8-film-noir-80.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" href="https://raw.githubusercontent.com/win877969/NS1/refs/heads/main/img/icon.png" type="image/png">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
             color: #f5f5f5;
             background-color: black;
             display: flex;
@@ -151,7 +181,18 @@ async function getAllConfigVless(hostName) {
             min-height: 100vh;
             overflow: hidden;
         }
-
+        .containerlogo {
+                background-color: #1d1d1d;
+                /* Warna gelap dengan nuansa lebih dalam */
+                border-radius: 10px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+                padding: 30px;
+                width: 100%;
+                max-width: 600px;
+                border: 1px solid #1d1d1d;
+                position: relative;
+                /* Untuk positioning watermark */
+            }
         .container {
             max-width: 1200px;
             width: 100%;
@@ -181,19 +222,85 @@ async function getAllConfigVless(hostName) {
 
         .header {
             text-align: center;
-            margin-bottom: 40px;
-            margin-top: 10px;
+            margin-bottom: 20px;
+            margin-top: 7px;
         }
 
         .header h1 {
             font-size: 42px;
-            color: yellow;
+            color: #448998;
             margin: 0;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 4px;
         }
+        .button2 {
+                background-color: #ffa500;
+                border: none;
+                color: #1e1e1e;
+                padding: 6px 12px;
+                text-align: center;
+                text-decoration: none;
+                font-size: 20px;
+                border: 1px solid #3c3c3c;
+                border-radius: 5px;
+                animation: slideIn 0.5s ease-in-out;
+                box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.5);
+                transition: background-color 0.3s ease, transform 0.2s ease;
+            }
 
+            .button2:hover {
+                background-color: #ff8c00;
+                transform: scale(1.05);
+            }
+        .button877 {
+                background-color: #000000;
+                border: none;
+                color: #000000;
+                padding: 6px 12px;
+                text-align: center;
+                text-decoration: none;
+                font-size: 20px;
+                border: 1px solid #000000;
+                border-radius: 5px;
+                animation: slideIn 0.5s ease-in-out;
+                box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+                transition: background-color 0.3s ease, transform 0.2s ease;
+            }
+
+            .button877:hover {
+                background-color: #ff8c00;
+                transform: scale(1.05);
+            }
+           .card {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+            border-radius: 12px;
+            padding: 15px;
+            box-sizing: border-box;
+            margin: 15px;
+        }
+        .card:hover {
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.8);
+            transform: translateY(-5px);
+        }
+        .card__top {
+            height: auto;
+            overflow: hidden;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        .card__top img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            display: block;
+        }
         .nav-buttons {
             display: flex;
             justify-content: center;
@@ -204,8 +311,8 @@ async function getAllConfigVless(hostName) {
 
         .nav-buttons .button {
             background-color: transparent;
-            border: 3px solid yellow;
-            color: yellow;
+            border: 3px solid #448998;
+            color: #448998;
             padding: 6px 12px;
             font-size: 20px;
             border-radius: 4px;
@@ -216,7 +323,7 @@ async function getAllConfigVless(hostName) {
         }
 
         .nav-buttons .button:hover {
-            background-color: yellow;
+            background-color: #448998;
             color: #fff;
             transform: scale(1.05);
         }
@@ -231,18 +338,52 @@ async function getAllConfigVless(hostName) {
             display: block;
             opacity: 1;
         }
+            .noted877 {
+                margin-top: 20px;
+                color: #000000;
+                font-weight: bold;
+                font-style: italic;
+            }
+            .noted {
+                margin-top: 20px;
+                color: #ff4500;
+                font-weight: bold;
+                font-style: italic;
+            }
 
+            .noted1 {
+                margin-top: 20px;
+                color: #ffa500;
+                font-weight: bold;
+                font-style: italic;
+                line-height: 1.5;
+            }
         .config-section {
             background: rgba(0, 0, 0, 0.5);
+            background-color: #3c3c3c;
             padding: 20px;
+            color: #ffffff;
             margin-right: 5px;
             margin-left: 5px;
-            border: 2px solid yellow;
+            border: 2px solid #448998;
             border-radius: 10px;
             position: relative;
             animation: slideIn 0.5s ease-in-out;
+            box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.5);
         }
-
+        .config-sectionlogo {
+            background: rgba(0, 0, 0, 0.5);
+            background-color: #000000;
+            padding: 20px;
+            color: #448998;
+            margin-right: 5px;
+            margin-left: 5px;
+            border: 2px solid #000000;
+            border-radius: 10px;
+            position: relative;
+            animation: slideIn 0.5s ease-in-out;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
         @keyframes slideIn {
             from { transform: translateX(-30px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
@@ -290,7 +431,7 @@ async function getAllConfigVless(hostName) {
             background-color: rgba(0, 0, 0, 0.2);
             padding: 15px;
             border-radius: 5px;
-            border: 2px solid yellow;
+            border: 2px solid #448998;
             color: #f5f5f5;
             word-wrap: break-word;
             white-space: pre-wrap;
@@ -299,8 +440,8 @@ async function getAllConfigVless(hostName) {
         }
         .button {
             background-color: transparent;
-            border: 2px solid yellow;
-            color: yellow;
+            border: 2px solid #448998;
+            color: #448998;
             padding: 4px 8px;
             font-size: 12px;
             border-radius: 3px;
@@ -319,7 +460,7 @@ async function getAllConfigVless(hostName) {
         }
 
         .button:hover {
-            background-color: yellow;
+            background-color: #448998;
             color: #fff;
             transform: scale(1.0);
         }
@@ -330,6 +471,20 @@ async function getAllConfigVless(hostName) {
             background: linear-gradient(to right, transparent, #fff, transparent);
             margin: 20px 0;
         }
+         .watermarkfooter {
+                position: absolute;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 0.8rem;
+                color: rgba(255, 255, 255, 0.5);
+                /* Warna watermark dengan transparansi */
+                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+                /* Bayangan teks untuk keterbacaan */
+                font-weight: bold;
+                text-align: center;
+                /* Pusatkan teks watermark */
+            }
         .watermark {
             position: absolute;
             bottom: 20px;
@@ -367,41 +522,84 @@ async function getAllConfigVless(hostName) {
                 font-size: 10px;
             }
         }
+         footer {
+            background: rgba(0, 0, 0, 0.9);
+            color: #e0e0e0;
+            text-align: center;
+            padding: 6px;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            position: relative;
+            bottom: 0;
+            margin: 0;
+        }
+        footer a {
+            color: #f7951e;
+            text-decoration: none;
+            font-weight: 700;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .card {
+                width: 100%;
+                margin-top: 20px;
+                max-height: none;
+            }
+            .button {
+                padding: 10px 40px; /* Adjust padding for smaller screens */
+            }
+        }
     </style>
 </head>
-<body>
+<body><header><p class="noted877"><a href="http://wa.me/6287861167414"><img src="https://raw.githubusercontent.com/win877969/NS1/refs/heads/main/img/social.png" alt="XVPN" style="width:42px;height:42px;"></a>
+ &nbsp; &nbsp;<a href="http://t.me/seaker877 "><img src="https://raw.githubusercontent.com/win877969/NS1/refs/heads/main/img/telegram.png" alt="XVPN" style="width:42px;height:42px;"></a>
+ &nbsp; &nbsp;<a href="https://chat.whatsapp.com/L9bbkRbzyozEFJHgGc9pPh"><img src="https://raw.githubusercontent.com/win877969/NS1/refs/heads/main/img/pngwing.com.png" alt="XVPN" style="width:42px;height:42px;"></a>
+</p></header>
+        
     <div class="overlay"></div>
-    <div class="container">
-        <div class="header">
-            <h1>ARI ANDIKA KUOTA</h1>
+    <div class="container"> 
+        <div class="card__top">
+          <img src="https://raw.githubusercontent.com/win877969/NS1/refs/heads/main/img/icon.png" alt="XVPN" loading="lazy">
+                        
         </div>
+        
+        
         <div class="nav-buttons">
-            <button class="button" onclick="showContent('vless')">VERSI VLESS</button>
-            <button class="button" onclick="showContent('clash')">VERSI CLASH</button>
-        </div>
-        <center><a href="https://wa.link/d982tb" class="button">WHATSAPP</a> <a href="https://m.facebook.com/ariy.tool/" class="button">FACEBOOK</a></center><br>
+            <button class="button2" onclick="showContent('vless')">LIST VLESS</button>
+            <button class="button2" onclick="showContent('clash')">LIST CLASH</button>        </div>
+            
+
         <div class="config-section">
-        <strong>LIST WILLCARD : </strong><br>
-        <br>
-        \u2730 ava.game.naver.com<br>
-        \u2730 graph.instagram.com<br>
-        \u2730 quiz.int.vidio.com<br>
-        \u2730 live.iflix.com<br>
-        \u2730 support.zoom.us<br>
-        \u2730 blog.webex.com<br>
-        \u2730 cache.netflix.com<br>
-        \u2730 investors.spotify.com<br>
-        \u2730 zaintest.vuclip.com<br>
-        </div>
+        <strong><b>DAFTAR WILCARD:</strong> <button class="button2"><div ID="Showild" VALUE="Click to Showild" ONCLICK=" document.getElementById('Showild').style.display='none'; document.getElementById('Hidewild').style.display='block'; document.getElementById('SectionNamewild').style.display='block'" >SHOW WILDCARD</DIV><div ID="Hidewild" VALUE="Click to Hidewild" ONCLICK=" document.getElementById('Showild').style.display='block'; document.getElementById('Hidewild').style.display='none'; document.getElementById('SectionNamewild').style.display='none'" hidden>HIDE WILDCARD</DIV></button><div ID="SectionNamewild" STYLE="display:none" name="m" rows="5" cols="50" on_click="this.value='Hello\nHow R U?'">
+<br>Â» ava.game.naver.com
+<br>Â» graph.instagram.com
+<br>Â» quiz.int.vidio.com
+<br>Â» live.iflix.com
+<br>Â» support.zoom.us
+<br>Â» blog.webex.com
+<br>Â» investors.spotify.com
+<br>Â» cache.netflix.com
+<br>Â» zaintest.vuclip.com
+<br>Â» io.ruangguru.com
+<br>Â» api.midtrans.com</b></DIV></DIV>
         <hr class="config-divider" />
         <div id="vless" class="content active">
             ${vlessConfigs}
         </div>
         <div id="clash" class="content">
             ${clashConfigs}
-        </div>
+            </div><center>
+            <p class="noted"> Noted: Pastikan untuk memeriksa konfigurasi dengan teliti sebelum digunakan.</p>
+           <p>
+             Â©Develoved by 
+             Â <a href="https://wa.me/6281335135082"><button class="button877"><img src="https://raw.githubusercontent.com/win877969/NS1/refs/heads/main/img/icon1.png" alt="HTML tutorial" style="width:100px;height:25px;"></button> </a> 
+              </p>
+            </center><p class="noted877">.<br>.</p>
+        
     </div>
-    <script>
+     <script>
         function showContent(contentId) {
             const contents = document.querySelectorAll('.content');
             contents.forEach(content => {
@@ -425,7 +623,7 @@ async function getAllConfigVless(hostName) {
             alertBox.style.bottom = '20px';
             alertBox.style.right = '20px';
             alertBox.style.backgroundColor = 'yellow';
-            alertBox.style.color = '#fff';
+            alertBox.style.color = '#000';
             alertBox.style.padding = '10px 20px';
             alertBox.style.borderRadius = '5px';
             alertBox.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
@@ -462,7 +660,7 @@ function fetchAndDisplayAlert(path) {
             alertBox.style.bottom = '20px';
             alertBox.style.right = '20px';
             alertBox.style.backgroundColor = 'yellow';
-            alertBox.style.color = '#fff';
+            alertBox.style.color = '#000';
             alertBox.style.padding = '10px 20px';
             alertBox.style.borderRadius = '5px';
             alertBox.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
@@ -494,7 +692,7 @@ function fetchAndDisplayAlert(path) {
                     alertBox.style.bottom = '20px';
                     alertBox.style.right = '20px';
                     alertBox.style.backgroundColor = 'yellow';
-                    alertBox.style.color = '#fff';
+                    alertBox.style.color = '#000';
                     alertBox.style.padding = '10px 20px';
                     alertBox.style.borderRadius = '5px';
                     alertBox.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
@@ -534,7 +732,6 @@ function fetchAndDisplayAlert(path) {
     return `An error occurred while generating the VLESS configurations. ${error}`;
   }
 }
-
 function generateUUIDv4() {
   const randomValues = crypto.getRandomValues(new Uint8Array(16));
   randomValues[6] = randomValues[6] & 15 | 64;
@@ -558,7 +755,6 @@ function generateUUIDv4() {
     randomValues[15].toString(16).padStart(2, "0")
   ].join("").replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, "$1-$2-$3-$4-$5");
 }
-
 async function vlessOverWSHandler(request) {
   const webSocketPair = new WebSocketPair();
   const [client, webSocket] = Object.values(webSocketPair);
@@ -633,7 +829,6 @@ async function vlessOverWSHandler(request) {
     webSocket: client
   });
 }
-
 async function handleTCPOutBound(remoteSocket, addressRemote, portRemote, rawClientData, webSocket, vlessResponseHeader, log) {
   async function connectAndWrite(address, port) {
     const tcpSocket2 = connect({
@@ -648,8 +843,7 @@ async function handleTCPOutBound(remoteSocket, addressRemote, portRemote, rawCli
     return tcpSocket2;
   }
   async function retry() {
-    const [proxyAddress, proxyPort] = proxyIP.split(":");
-    const tcpSocket2 = await connectAndWrite(proxyAddress || addressRemote, proxyPort || portRemote);
+    const tcpSocket2 = await connectAndWrite(proxyIP || addressRemote, portRemote);
     tcpSocket2.closed.catch((error) => {
       console.log("retry tcpSocket closed error", error);
     }).finally(() => {
@@ -660,7 +854,6 @@ async function handleTCPOutBound(remoteSocket, addressRemote, portRemote, rawCli
   const tcpSocket = await connectAndWrite(addressRemote, portRemote);
   remoteSocketToWS(tcpSocket, webSocket, vlessResponseHeader, retry, log);
 }
-
 function makeReadableWebSocketStream(webSocketServer, earlyDataHeader, log) {
   let readableStreamCancel = false;
   const stream = new ReadableStream({
@@ -709,7 +902,6 @@ function makeReadableWebSocketStream(webSocketServer, earlyDataHeader, log) {
   });
   return stream;
 }
-
 function processVlessHeader(vlessBuffer) {
   if (vlessBuffer.byteLength < 24) {
     return {
@@ -799,7 +991,6 @@ function processVlessHeader(vlessBuffer) {
     isUDP
   };
 }
-
 async function remoteSocketToWS(remoteSocket, webSocket, vlessResponseHeader, retry, log) {
   let remoteChunkCount = 0;
   let chunks = [];
@@ -842,7 +1033,6 @@ async function remoteSocketToWS(remoteSocket, webSocket, vlessResponseHeader, re
     retry();
   }
 }
-
 function base64ToArrayBuffer(base64Str) {
   if (!base64Str) {
     return { error: null };
@@ -856,10 +1046,8 @@ function base64ToArrayBuffer(base64Str) {
     return { error };
   }
 }
-
 var WS_READY_STATE_OPEN = 1;
 var WS_READY_STATE_CLOSING = 2;
-
 function safeCloseWebSocket(socket) {
   try {
     if (socket.readyState === WS_READY_STATE_OPEN || socket.readyState === WS_READY_STATE_CLOSING) {
@@ -869,7 +1057,6 @@ function safeCloseWebSocket(socket) {
     console.error("safeCloseWebSocket error", error);
   }
 }
-
 async function handleUDPOutBound(webSocket, vlessResponseHeader, log) {
   let isVlessHeaderSent = false;
   const transformStream = new TransformStream({
@@ -924,7 +1111,6 @@ async function handleUDPOutBound(webSocket, vlessResponseHeader, log) {
     }
   };
 }
-
 export {
   worker_default as default
 };

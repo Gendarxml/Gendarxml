@@ -1,29 +1,14 @@
 // worker.js
 import { connect } from "cloudflare:sockets";
+
 var listProxy = [
-  { path: "/id1", proxy: "172.232.239.151:587" },
-  { path: "/id2", proxy: "35.219.15.90:443" },
-  { path: "/id3", proxy: "165.154.48.233:587" },
-  { path: "/id4", proxy: "43.133.145.156:53136" },  
-  { path: "/sg-byt", proxy: "89.34.227.98:8080" },
-  { path: "/sgtcc", proxy: "43.134.239.19:443" },
-  { path: "/sgtencent", proxy: "43.134.239.19:443" },
-  { path: "/sgalibaba", proxy: "8.219.50.5:29220" },
-  { path: "/sggreen", proxy: "5.34.176.119:81" },
-  { path: "/sgakamai", proxy: "143.42.68.97:17055" },
-  { path: "/sgVultr", proxy: "139.180.144.170:666" },
-  { path: "/GCPID", proxy: "35.219.50.99:443" },
-  { path: "/sgovhsas", proxy: "51.79.158.126:443" },
-  { path: "/sgdo", proxy: "159.223.34.97:4433" },
-  { path: "/sgLatitude", proxy: "64.49.14.239:443" },
-  { path: "/sgmegalayer", proxy: "103.180.161.10:587" },
-  { path: "/sgoracle", proxy: "138.2.77.179:30018" },
-  { path: "/sgbelnet", proxy: "194.36.179.237:443" },
-  { path: "/sgamazon", proxy: "54.251.167.101:443" }
-  //tambahin sendiri
+  { path: "/MALASIA", proxy: "45.195.69.98:30726" },
+  { path: "/INDONESIA", proxy: "172.232.239.151:587" },
+  { path: "/SINGAPORE", proxy: "143.198.213.197:8443" },
+  // tambahkan sendiri
 ];
+
 var proxyIP;
-var proxyPort;
 var worker_default = {
   async fetch(request, ctx) {
     try {
@@ -32,7 +17,7 @@ var worker_default = {
       const upgradeHeader = request.headers.get("Upgrade");
       for (const entry of listProxy) {
         if (url.pathname === entry.path) {
-          [proxyIP, proxyPort] = entry.proxy.split(':');
+          proxyIP = entry.proxy;
           break;
         }
       }
@@ -49,20 +34,74 @@ var worker_default = {
     }
   }
 };
+
 async function getAllConfigVless(hostName) {
   try {
     let vlessConfigs = "";
     let clashConfigs = "";
     for (const entry of listProxy) {
       const { path, proxy } = entry;
-      const [ipOnly] = proxy.split(':');
-      const response = await fetch(`http://ip-api.com/json/${ipOnly}`);
+      const [proxyAddress, proxyPort] = proxy.split(":");
+      const response = await fetch(`http://ip-api.com/json/${proxyAddress}`);
       const data = await response.json();
       const pathFixed = encodeURIComponent(path);
-      const vlessTls = `vless://${generateUUIDv4()}@${hostName}:443?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=${pathFixed}#${data.isp} (${data.countryCode})`;
-      const vlessNtls = `vless://${generateUUIDv4()}@${hostName}:80?path=${pathFixed}&security=none&encryption=none&host=${hostName}&fp=randomized&type=ws&sni=${hostName}#${data.isp} (${data.countryCode})`;
+      const vlessTls = `vless://${generateUUIDv4()}@Quiz.vidio.com:443?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=${pathFixed}#${hostName} (${data.countryCode})`;
+      const vlessNtls = `vless://${generateUUIDv4()}@${hostName}:80?path=${pathFixed}&security=none&encryption=none&host=${hostName}&fp=randomized&type=ws#${data.isp} (${data.countryCode})`;
       const vlessTlsFixed = vlessTls.replace(/ /g, "+");
       const vlessNtlsFixed = vlessNtls.replace(/ /g, "+");
+      const clashConfTls = `- name: ${data.isp} (${data.countryCode})
+  server: ${hostName}
+  port: 443
+  type: vless
+  uuid: ${generateUUIDv4()}
+  tls: true
+  udp: true
+  skip-cert-verify: true
+  network: ws
+  servername: ${hostName}
+  ws-opts:
+    path: ${path}
+    headers:
+      Host: ${hostName}`;
+      const clashConfNtls = `- name: ${data.isp} (${data.countryCode})
+  server: ${hostName}
+  port: 80
+  type: vless
+  uuid: ${generateUUIDv4()}
+  udp: true
+  network: ws
+  ws-opts:
+    path: ${path}
+    headers:
+      Host: ${hostName}`;
+      clashConfigs += `<div style="display: none;">
+   <textarea id="clashTls${path}">${clashConfTls}</textarea>
+ </div>
+<div style="display: none;">
+   <textarea id="clashNtls${path}">${clashConfNtls}</textarea>
+ </div>
+<div class="config-section">
+    <p><strong>ISP  :  ${data.isp} (${data.countryCode})</strong> </p>
+    <hr/>
+    <div class="config-toggle">
+        <button class="button" onclick="toggleConfig(this, 'show clash', 'hide clash')">Show Clash</button>
+        <div class="config-content">
+            <div class="config-block">
+                <h3>TLS:</h3>
+                <p class="config">${clashConfTls}</p>
+                <button class="button" onclick='copyClash("clashTls${path}")'><i class="fa fa-clipboard"></i>Copy</button>
+            </div>
+            <hr />
+            <div class="config-block">
+                <h3>NTLS:</h3>
+                <p class="config">${clashConfNtls}</p>
+                <button class="button" onclick='copyClash("clashNtls${path}")'><i class="fa fa-clipboard"></i>Copy</button>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="config-divider" />
+`;
       vlessConfigs += `<div class="config-section">
     <p><strong>ISP  :  ${data.isp} (${data.countryCode}) </strong> </p>
     <hr />
@@ -98,220 +137,249 @@ async function getAllConfigVless(hostName) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTnHg4C+6PCWJ+8zzHcXQjXGp6n5Yh9rX0x5fOdPaOqO+e2X4R5C1aE/BSqPIG+8y3O6APa8w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="icon" href="https://raw.githubusercontent.com/AFRcloud/BG/main/icons8-film-noir-80.png" type="image/png">
     <style>
-    body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Poppins', sans-serif;
-    color: #f5f5f5;
-    background-color: #2d3b48; /* Dark Blue-gray */
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    min-height: 100vh;
-    overflow: hidden;
-}
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
-.container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 3px;
-    background: rgba(0, 0, 0, 0.8); /* Dark transparent background */
-    backdrop-filter: blur(10px);
-    animation: fadeIn 1s ease-in-out;
-    overflow-y: auto;
-    max-height: 100vh;
-}
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            color: #f5f5f5;
+            background-color: black;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow: hidden;
+        }
 
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(15, 15, 15, 0.4);
-    z-index: -1;
-}
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 3px;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            animation: fadeIn 1s ease-in-out;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 15, 15, 0.4);
+            z-index: -1;
+        }
 
-.header h1 {
-    text-align: center;
-    margin: 10px 0 40px;
-    font-size: 42px;
-    color: #f39c12; /* Golden Yellow */
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 4px;
-}
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-.nav-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin: 20px 0;
-}
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            margin-top: 10px;
+        }
 
-.nav-buttons .button {
-    background-color: transparent;
-    border: 3px solid #f39c12; /* Golden Yellow */
-    color: #f39c12;
-    padding: 6px 12px;
-    font-size: 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: 0.3s;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-}
+        .header h1 {
+            font-size: 42px;
+            color: yellow;
+            margin: 0;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
 
-.nav-buttons .button:hover {
-    background-color: #f39c12; /* Golden Yellow */
-    color: #fff;
-    transform: scale(1.05);
-}
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
 
-.content {
-    display: none;
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
-}
+        .nav-buttons .button {
+            background-color: transparent;
+            border: 3px solid yellow;
+            color: yellow;
+            padding: 6px 12px;
+            font-size: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
 
-.content.active {
-    display: block;
-    opacity: 1;
-}
+        .nav-buttons .button:hover {
+            background-color: yellow;
+            color: #fff;
+            transform: scale(1.05);
+        }
 
-.config-section {
-    background: rgba(44, 62, 80, 0.7); /* Dark Slate Blue */
-    padding: 20px;
-    border: 2px solid #f39c12;
-    border-radius: 10px;
-    position: relative;
-    animation: slideIn 0.5s ease-in-out;
-}
+        .content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
 
-@keyframes slideIn {
-    from { transform: translateX(-30px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
+        .content.active {
+            display: block;
+            opacity: 1;
+        }
 
-.config-section h3 {
-    color: #e74c3c; /* Red */
-    font-size: 28px;
-    margin-top: 0;
-}
+        .config-section {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            margin-right: 5px;
+            margin-left: 5px;
+            border: 2px solid yellow;
+            border-radius: 10px;
+            position: relative;
+            animation: slideIn 0.5s ease-in-out;
+        }
 
-.config-section p {
-    font-size: 16px;
-    color: #ecf0f1; /* Light Gray */
-}
+        @keyframes slideIn {
+            from { transform: translateX(-30px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
 
-.config-toggle {
-    margin-bottom: 10px;
-}
+        .config-section h3 {
+            margin-top: 0;
+            color: #e1b12c;
+            font-size: 28px;
+        }
 
-.config-content {
-    display: none;
-}
+        .config-section p {
+            color: #f5f5f5;
+            font-size: 16px;
+        }
 
-.config-content.active {
-    display: block;
-}
+        .config-toggle {
+            margin-bottom: 10px;
+        }
 
-.config-block {
-    margin-bottom: 10px;
-    padding: 15px;
-    border-radius: 10px;
-    background-color: rgba(52, 152, 219, 0.2); /* Light Blue */
-    transition: background-color 0.3s;
-}
+        .config-content {
+            display: none;
+        }
 
-.config-block h4 {
-    color: #2980b9; /* Blue */
-    font-size: 22px;
-    font-weight: 600;
-    margin-bottom: 8px;
-}
+        .config-content.active {
+            display: block;
+        }
 
-.config {
-    background-color: rgba(44, 62, 80, 0.3); /* Dark Slate Blue */
-    padding: 15px;
-    border-radius: 5px;
-    border: 2px solid #f39c12;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 15px;
-    word-wrap: break-word;
-    white-space: pre-wrap;
-}
+        .config-block {
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease;
+        }
 
-.button {
-    background-color: transparent;
-    border: 2px solid #f39c12; /* Golden Yellow */
-    color: #f39c12;
-    padding: 4px 8px;
-    font-size: 12px;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: 0.3s;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-right: 4px;
-}
+        .config-block h4 {
+            margin-bottom: 8px;
+            color: #f39c12;
+            font-size: 22px;
+            font-weight: 600;
+        }
 
-.button i {
-    margin-right: 3px;
-}
+        .config {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 5px;
+            border: 2px solid yellow;
+            color: #f5f5f5;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+        }
+        .button {
+            background-color: transparent;
+            border: 2px solid yellow;
+            color: yellow;
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-right: 4px;
+        }
 
-.button:hover {
-    background-color: #f39c12; /* Golden Yellow */
-    color: #fff;
-}
+        .button i {
+            margin-right: 3px;
+        }
 
-.config-divider {
-    height: 1px;
-    background: linear-gradient(to right, transparent, #fff, transparent);
-    margin: 20px 0;
-}
+        .button:hover {
+            background-color: yellow;
+            color: #fff;
+            transform: scale(1.0);
+        }
 
-.watermark {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.5);
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-    font-weight: bold;
-    text-align: center;
-}
+        .config-divider {
+            border: none;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #fff, transparent);
+            margin: 20px 0;
+        }
+        .watermark {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            font-weight: bold;
+            text-align: center;
+        }
+        .watermark a {
+            color: #ffa500;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .watermark a:hover {
+            color: #ffa500;
+        }
 
-.watermark a {
-    color: #e74c3c; /* Red */
-    text-decoration: none;
-    font-weight: bold;
-}
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 32px;
+            }
 
-.watermark a:hover {
-    color: #e74c3c; /* Red */
-}
+            .config-section h3 {
+                font-size: 24px;
+            }
 
-@media (max-width: 768px) {
-    .header h1 { font-size: 32px; }
-    .config-section h3 { font-size: 24px; }
-    .config-block h4 { font-size: 20px; }
-}
+            .config-block h4 {
+                font-size: 20px;
+            }
 
+            .domain-list {
+                font-size: 10px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="overlay"></div>
     <div class="container">
         <div class="header">
-            <h1>VLESS CLOUDFLARE</h1>
+            <h1>ARI ANDIKA KUOTA</h1>
         </div>
+        <div class="nav-buttons">
+            <button class="button" onclick="showContent('vless')">VERSI VLESS</button>
+            <button class="button" onclick="showContent('clash')">VERSI CLASH</button>
+        </div>
+        <center><a href="https://wa.link/d982tb" class="button">WHATSAPP</a> <a href="https://m.facebook.com/ariy.tool/" class="button">FACEBOOK</a></center><br>
         <div class="config-section">
         <strong>LIST WILLCARD : </strong><br>
         <br>
@@ -328,6 +396,9 @@ async function getAllConfigVless(hostName) {
         <hr class="config-divider" />
         <div id="vless" class="content active">
             ${vlessConfigs}
+        </div>
+        <div id="clash" class="content">
+            ${clashConfigs}
         </div>
     </div>
     <script>
@@ -463,6 +534,7 @@ function fetchAndDisplayAlert(path) {
     return `An error occurred while generating the VLESS configurations. ${error}`;
   }
 }
+
 function generateUUIDv4() {
   const randomValues = crypto.getRandomValues(new Uint8Array(16));
   randomValues[6] = randomValues[6] & 15 | 64;
@@ -486,6 +558,7 @@ function generateUUIDv4() {
     randomValues[15].toString(16).padStart(2, "0")
   ].join("").replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, "$1-$2-$3-$4-$5");
 }
+
 async function vlessOverWSHandler(request) {
   const webSocketPair = new WebSocketPair();
   const [client, webSocket] = Object.values(webSocketPair);
@@ -560,6 +633,7 @@ async function vlessOverWSHandler(request) {
     webSocket: client
   });
 }
+
 async function handleTCPOutBound(remoteSocket, addressRemote, portRemote, rawClientData, webSocket, vlessResponseHeader, log) {
   async function connectAndWrite(address, port) {
     const tcpSocket2 = connect({
@@ -574,7 +648,8 @@ async function handleTCPOutBound(remoteSocket, addressRemote, portRemote, rawCli
     return tcpSocket2;
   }
   async function retry() {
-    const tcpSocket2 = await connectAndWrite(proxyIP || addressRemote, proxyPort || portRemote);
+    const [proxyAddress, proxyPort] = proxyIP.split(":");
+    const tcpSocket2 = await connectAndWrite(proxyAddress || addressRemote, proxyPort || portRemote);
     tcpSocket2.closed.catch((error) => {
       console.log("retry tcpSocket closed error", error);
     }).finally(() => {
@@ -585,6 +660,7 @@ async function handleTCPOutBound(remoteSocket, addressRemote, portRemote, rawCli
   const tcpSocket = await connectAndWrite(addressRemote, portRemote);
   remoteSocketToWS(tcpSocket, webSocket, vlessResponseHeader, retry, log);
 }
+
 function makeReadableWebSocketStream(webSocketServer, earlyDataHeader, log) {
   let readableStreamCancel = false;
   const stream = new ReadableStream({
@@ -633,6 +709,7 @@ function makeReadableWebSocketStream(webSocketServer, earlyDataHeader, log) {
   });
   return stream;
 }
+
 function processVlessHeader(vlessBuffer) {
   if (vlessBuffer.byteLength < 24) {
     return {
@@ -722,6 +799,7 @@ function processVlessHeader(vlessBuffer) {
     isUDP
   };
 }
+
 async function remoteSocketToWS(remoteSocket, webSocket, vlessResponseHeader, retry, log) {
   let remoteChunkCount = 0;
   let chunks = [];
@@ -764,6 +842,7 @@ async function remoteSocketToWS(remoteSocket, webSocket, vlessResponseHeader, re
     retry();
   }
 }
+
 function base64ToArrayBuffer(base64Str) {
   if (!base64Str) {
     return { error: null };
@@ -777,8 +856,10 @@ function base64ToArrayBuffer(base64Str) {
     return { error };
   }
 }
+
 var WS_READY_STATE_OPEN = 1;
 var WS_READY_STATE_CLOSING = 2;
+
 function safeCloseWebSocket(socket) {
   try {
     if (socket.readyState === WS_READY_STATE_OPEN || socket.readyState === WS_READY_STATE_CLOSING) {
@@ -788,6 +869,7 @@ function safeCloseWebSocket(socket) {
     console.error("safeCloseWebSocket error", error);
   }
 }
+
 async function handleUDPOutBound(webSocket, vlessResponseHeader, log) {
   let isVlessHeaderSent = false;
   const transformStream = new TransformStream({
@@ -842,6 +924,7 @@ async function handleUDPOutBound(webSocket, vlessResponseHeader, log) {
     }
   };
 }
+
 export {
   worker_default as default
 };

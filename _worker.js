@@ -48,498 +48,364 @@ var worker_default = {
       });
     }
   }
-};
-
+}
 async function getAllConfigVless(env, hostName, listProxy) {
-  try {
-    let vlessConfigs = "";
-    let trojanConfigs = "";
-    for (const entry of listProxy) {
-      const { proxyIP, proxyPort, country, isp } = entry;
+  const listProxyElements = listProxy
+    .map(({ proxyIP, proxyPort, country, isp }, index) => {
+      const vlessTls = `vless://${generateUUIDv4()}@masukan.bug.ws:443?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2Fvl%3D${proxyIP}%3D${proxyPort}#(${country}) ${isp}`;
+      const vlessNtls = `vless://${generateUUIDv4()}@masukan.bug.ws:80?path=%2Fvl%3D${proxyIP}%3D${proxyPort}&security=none&encryption=none&host=${hostName}&fp=randomized&type=ws&sni=${hostName}#(${country}) ${isp}`;
+      const trojanTls = `trojan://${generatePASSWD()}@masukan.bug.ws:443?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2Ftr%3D${proxyIP}%3D${proxyPort}#(${country}) ${isp}`;
+      const trojanNtls = `trojan://${generatePASSWD()}@masukan.bug.ws:80?path=%2Ftr%3D${proxyIP}%3D${proxyPort}&security=none&encryption=none&host=${hostName}&fp=randomized&type=ws&sni=${hostName}#(${country}) ${isp}`;
 
-      const vlessTls = `vless://${generateUUIDv4()}@${hostName}:443?encryption=none&security=tls&sni=${hostName}&type=ws&host=${hostName}&path=/vl%3D${proxyIP}%3D${proxyPort}#${country} ${isp}`;
-      const vlessNtls = `vless://${generateUUIDv4()}@${hostName}:80?encryption=none&security=none&type=ws&host=${hostName}&path=/vl%3D${proxyIP}%3D${proxyPort}#${country} ${isp}`;
+      return `
+        <div class="content ${index === 0 ? "active" : ""}">
+          <h2>VLESS & TROJAN CLOUDFLARE</h2><br>
+          <h2>Free and Unlimited</h2><br>
+          <hr class="config-divider"/>
+          <center><h1>${country} (${isp})</h1></center>
+          <center><h1>${proxyIP}:${proxyPort}</h1></center>
+          <hr class="config-divider" />
+          <h2>VLESS</h2>
+          <pre>${vlessTls}</pre>
+          <button onclick="copyToClipboard('${vlessTls}')">Copy Vless TLS</button>
+          <pre>${vlessNtls}</pre>
+          <button onclick="copyToClipboard('${vlessNtls}')">Copy Vless N-TLS</button>
+          <hr class="config-divider" />
+          <h2>TROJAN</h2>
+          <pre>${trojanTls}</pre>
+          <button onclick="copyToClipboard('${trojanTls}')">Copy Trojan TLS</button>
+          <pre>${trojanNtls}</pre>
+          <button onclick="copyToClipboard('${trojanNtls}')">Copy Trojan N-TLS</button>
+          <hr class="config-divider" />
+        </div>`;
+    })
+    .join("");
 
-      const vlessTlsFixed = vlessTls.replace(/ /g, "+");
-      const vlessNtlsFixed = vlessNtls.replace(/ /g, "+");
-      
-      const trojanTls = `trojan://${generateUUIDv4()}@${hostName}:443?encryption=none&security=tls&sni=${hostName}&type=ws&host=${hostName}&path=/tr%3D${proxyIP}%3D${proxyPort}#${country} ${isp}`;
-      const trojanNtls = `trojan://${generateUUIDv4()}@${hostName}:443?encryption=none&security=none&sni=${hostName}&type=ws&host=${hostName}&path=/tr%3D${proxyIP}%3D${proxyPort}#${country} ${isp}`;
-
-      const trojanTlsFixed = trojanTls.replace(/ /g, "+");
-      const trojanNtlsFixed = trojanNtls.replace(/ /g, "+");
-      
-      vlessConfigs += `<div class="config-section">
-    <p><strong>ISP  :  ${isp} (${country}) </strong> </p>
-    <hr />
-    <div class="config-toggle">
-        <button class="button" onclick="toggleConfig(this, 'show vless', 'hide vless')">Show Vless</button>
-        <div class="config-content">
-            <div class="config-block">
-                <h3>TLS:</h3>
-                <p class="config">${vlessTlsFixed}</p>
-                <button class="button" onclick='copyToClipboard("${vlessTlsFixed}")'><i class="fa fa-clipboard"></i>Copy</button>
-            </div>
-            <hr />
-            <div class="config-block">
-                <h3>NTLS:</h3>
-                <p class="config">${vlessNtlsFixed}</p>
-                <button class="button" onclick='copyToClipboard("${vlessNtlsFixed}")'><i class="fa fa-clipboard"></i>Copy</button>
-            </div>
-            <hr />
-        </div>
-    </div>
-</div>
-<hr class="config-divider" />
-`;
-    trojanConfigs += `<div class="config-section">
-    <p><strong>ISP  :  ${isp} (${country}) </strong> </p>
-    <hr />
-    <div class="config-toggle">
-        <button class="button" onclick="toggleConfig(this, 'show Trojan', 'hide Trojan')">Show Trojan</button>
-        <div class="config-content">
-            <div class="config-block">
-                <h3>TLS-Only:</h3>
-                <p class="config">${trojanTlsFixed}</p>
-                <button class="button" onclick='copyToClipboard("${trojanTlsFixed}")'><i class="fa fa-clipboard"></i>Copy</button>
-            </div>
-            <hr />
-        </div>
-    </div>
-</div>
-<hr class="config-divider" />
-`;
-    }
-    const htmlConfigs = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
+  return `
+    <html>
+      <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Vless | Noir7R | CLoudFlare</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTnHg4C+6PCWJ+8zzHcXQjXGp6n5Yh9rX0x5fOdPaOqO+e2X4R5C1aE/BSqPIG+8y3O6APa8w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="icon" href="https://raw.githubusercontent.com/AFRcloud/BG/main/icons8-film-noir-80.png" type="image/png">
-    <style>
-    body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Poppins', sans-serif;
-    color: #f5f5f5;
-    background-color: #2d3b48; /* Dark Blue-gray */
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    min-height: 100vh;
+    <title>Vless | AFRCloud | CloudFlare</title>
+    <meta name="description" content="Akun Vless Gratis.">
+    <meta name="keywords" content="AFRCloud, Vless Gratis, Free Vless, Vless CF, Trojan CF, Cloudflare">
+    <meta name="author" content="AFRCloud">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph Meta Tags untuk SEO Media Sosial -->
+    <meta property="og:title" content="Akun Vless Gratis - Akun Vless Cloudflare">
+    <meta property="og:description" content="AFRCloud, Vless Gratis, Free Vless, Vless CF, Trojan CF, Cloudflare.">
+    <meta property="og:image" content="https://img.freepik.com/free-photo/painting-mountain-lake-with-mountain-background_188544-9126.jpg"> <!-- Ganti dengan URL gambar yang sesuai -->
+    <meta property="og:url" content="https://img.freepik.com/free-photo/painting-mountain-lake-with-mountain-background_188544-9126.jpg">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Akun Vless Gratis - Akun Vless Cloudflare">
+    <meta name="twitter:description" content="AFRCloud, Vless Gratis, Free Vless, Vless CF, Trojan CF, Cloudflare.">
+    <meta name="twitter:image" content="https://img.freepik.com/free-photo/painting-mountain-lake-with-mountain-background_188544-9126.jpg"> <!-- Ganti dengan URL gambar yang sesuai -->
+        <style>
+  html, body {
+    height: 100%;
+    width: 100%;
     overflow: hidden;
-}
-.author-link {
+    background-color: #1a1a1a;
+    font-family: 'Roboto', Arial, sans-serif;
+    margin: 0;
+  }
+  body {
+    display: flex;
+    background: url('https://raw.githubusercontent.com/bitzblack/ip/refs/heads/main/shubham-dhage-5LQ_h5cXB6U-unsplash.jpg') no-repeat center center fixed;
+    background-size: cover;
+    justify-content: center;
+    align-items: center;
+  }
+  .popup {
+    width: 100vw;
+    height: 90vh;
+    border-radius: 15px;
+    background-color: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(8px);
+    display: grid;
+    grid-template-columns: 1.5fr 3fr;
+    box-shadow: 0px 10px 20px rgba(255, 223, 0, 0.5); /* Efek kuning */
+    overflow: hidden;
+    animation: popupEffect 1s ease-in-out;
+  }
+  @keyframes popupEffect {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .tabs {
+    background-color: #2a2a2a;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-right: 2px solid #FFD700; /* Warna kuning */
+    box-shadow: inset 0 0 10px rgba(255, 223, 0, 0.3); /* Glow kuning */
+  }
+  .author-link {
     position: absolute;
     bottom: 10px;
-    right: 200px;
+    right: 10px;
     font-weight: bold;
     font-style: italic;
-    color: #ff25f2; /* Warna emas */
-    font-size: 30px;
+    color: #FFD700; /* Warna kuning */
+    font-size: 12px;
     text-decoration: none;
     z-index: 10;
   }
-
   .author-link:hover {
-    color: #e11ecb; /* Warna emas lebih terang saat hover */
+    color: #FFF700; /* Kuning lebih terang */
+    text-shadow: 0px 0px 10px rgba(255, 223, 0, 0.7);
   }
-.container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 3px;
-    background: rgba(0, 0, 0, 0.8); /* Dark transparent background */
-    backdrop-filter: blur(10px);
-    animation: fadeIn 1s ease-in-out;
+  label {
+    font-size: 12px;
+    cursor: pointer;
+    color: #FFD700; /* Warna kuning */
+    padding: 10px;
+    background-color: #333;
+    border-radius: 8px;
+    text-align: left;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    box-shadow: 0px 4px 6px rgba(255, 223, 0, 0.3); /* Glow kuning */
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+  label:hover {
+    background-color: #FFD700; /* Kuning */
+    color: #111;
+    transform: translateY(-3px);
+    box-shadow: 0px 8px 12px rgba(255, 223, 0, 0.7);
+  }
+  input[type="radio"] {
+    display: none;
+  }
+  .tab-content {
+    padding: 20px;
     overflow-y: auto;
-    max-height: 100vh;
-}
-
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
+    color: #FFFACD; /* Kuning pucat */
+    font-size: 14px;
+    background-color: #222;
     height: 100%;
-    background: rgba(15, 15, 15, 0.4);
-    z-index: -1;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.header h1 {
+    box-sizing: border-box;
+    border-radius: 10px;
+    box-shadow: inset 0 0 20px rgba(255, 223, 0, 0.2);
+  }
+  .content {
+    display: none;
+    padding-right: 15px;
+  }
+  .content.active {
+    display: block;
+    animation: fadeIn 0.5s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  h1 {
+    font-size: 18px;
+    color: #FFD700; /* Kuning */
+    margin-bottom: 10px;
+    text-shadow: 0px 0px 10px rgba(255, 223, 0, 0.5);
+  }
+  h2 {
+    font-size: 22px;
+    color: #FFD700; /* Kuning */
     text-align: center;
-    margin: 30px 0 20px;
-    font-size: 42px;
-    color: #f39c12; /* Golden grey */
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 4px;
-}
-h2 {
-    text-align: center;
-    font-size: 30px;
-    color: #f39c12; /* Golden grey */
+    text-shadow: 0px 0px 15px rgba(255, 223, 0, 0.7);
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 8px;
-}
-
-.nav-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin: 20px 0;
-}
-
-.nav-buttons .button {
-    background-color: transparent;
-    border: 3px solid #f39c12; /* Golden grey */
-    color: #f39c12;
-    padding: 6px 12px;
-    font-size: 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: 0.3s;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-}
-
-.nav-buttons .button:hover {
-    background-color: #f39c12; /* Golden grey */
-    color: #fff;
-    transform: scale(1.05);
-}
-
-.content {
-    display: none;
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
-}
-
-.content.active {
-    display: block;
-    opacity: 1;
-}
-
-.config-section {
-    background: rgba(44, 62, 80, 0.7); /* Dark Slate Blue */
-    padding: 20px;
-    border: 2px solid #f39c12;
-    border-radius: 10px;
-    position: relative;
-    animation: slideIn 0.5s ease-in-out;
-}
-
-@keyframes slideIn {
-    from { transform: translateX(-30px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-.config-section h3 {
-    color: #e74c3c; /* Red */
-    font-size: 28px;
-    margin-top: 0;
-}
-
-.config-section p {
-    font-size: 16px;
-    color: #ecf0f1; /* Light Gray */
-}
-
-.config-toggle {
-    margin-bottom: 10px;
-}
-
-.config-content {
-    display: none;
-}
-
-.config-content.active {
-    display: block;
-}
-
-.config-block {
-    margin-bottom: 10px;
-    padding: 15px;
-    border-radius: 10px;
-    background-color: rgba(52, 152, 219, 0.2); /* Light Blue */
-    transition: background-color 0.3s;
-}
-
-.config-block h4 {
-    color: #2980b9; /* Blue */
-    font-size: 22px;
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-
-.config {
-    background-color: rgba(44, 62, 80, 0.3); /* Dark Slate Blue */
-    padding: 15px;
-    border-radius: 5px;
-    border: 2px solid #f39c12;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 15px;
-    word-wrap: break-word;
-    white-space: pre-wrap;
-}
-
-.button {
-    background-color: transparent;
-    border: 2px solid #f39c12; /* Golden grey */
-    color: #f39c12;
-    padding: 4px 8px;
+  }
+  pre {
+    background-color: rgba(50, 50, 50, 0.8);
+    padding: 10px;
+    border-radius: 8px;
     font-size: 12px;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: 0.3s;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-right: 4px;
-}
-
-.button i {
-    margin-right: 3px;
-}
-
-.button:hover {
-    background-color: #f39c12; /* Golden grey */
-    color: #fff;
-}
-
-.config-divider {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: #FFD700; /* Kuning */
+    border: 1px solid #FFD700;
+    box-shadow: 0px 4px 8px rgba(255, 223, 0, 0.4);
+  }
+  .config-divider {
+    border: none;
     height: 1px;
-    background: linear-gradient(to right, transparent, #fff, transparent);
-    margin: 20px 0;
-}
-
-.watermark {
+    background: linear-gradient(to right, transparent, #FFD700, transparent);
+    margin: 40px 0;
+  }
+  .config-description {
+    font-weight: bold;
+    font-style: italic;
+    color: #FFD700; /* Kuning */
+    font-size: 14px;
+    text-align: justify;
+    margin: 0 10px; /* Tambahkan margin kiri-kanan agar tidak terlalu mepet */
+  }
+  button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    background-color: #FFD700;
+    color: #111;
+    cursor: pointer;
+    font-weight: bold;
+    display: block;
+    text-align: left;
+    box-shadow: 0px 4px 6px rgba(255, 223, 0, 0.5);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
+  button:hover {
+    background-color: #FFF700; /* Kuning lebih terang */
+    transform: translateY(-3px);
+    box-shadow: 0px 8px 12px rgba(255, 223, 0, 0.8);
+  }
+  #search {
+    background: #333;
+    color: #FFD700;
+    border: 1px solid #FFD700;
+    border-radius: 6px;
+    padding: 5px;
+    margin-bottom: 10px;
+    width: 100%;
+    box-shadow: 0px 0px 10px rgba(255, 223, 0, 0.3);
+  }
+  #search::placeholder {
+    color: #FFD700;
+  }
+  .watermark {
     position: absolute;
-    bottom: 20px;
+    bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 1.5rem;
+    font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.5);
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
     font-weight: bold;
     text-align: center;
-}
+  }
 
-.watermark a {
+  .watermark a {
     color: #e74c3c; /* Red */
     text-decoration: none;
     font-weight: bold;
 }
 
-.watermark a:hover {
+  .watermark a:hover {
     color: #e74c3c; /* Red */
 }
 
-@media (max-width: 768px) {
+  @media (max-width: 768px) {
     .header h1 { font-size: 32px; }
     .config-section h3 { font-size: 24px; }
     .config-block h4 { font-size: 20px; }
-}
-
-    </style>
-</head>
-<body>
-    <div class="overlay"></div>
-    <div class="container">
-        <div class="header">
-            <h1>VLESS & TROJAN CLOUDFLARE</h1><br>
-            <h2>Free and Unlimited</h2><br>
-        </div>
-        <div class="config-section">
-        <div class="nav-buttons">
-            <button class="button" onclick="showContent('vless')">List vless</button>
-            <button class="button" onclick="showContent('trojan')">List trojan</button>
-        </div>
-        <center><a href="https://t.me/Noir7R" class="button">@Noir7R</a></center><br>
-        </div><hr class="config-divider" />
-        <div class="config-section">
-        
-        <strong>LIST WILLCARD : </strong><br>
-        <br>
-        \u2730 quiz.int.vidio.com<br>
-        \u2730 zaintest.vuclip.com<br>
-        </div>
-        <hr class="config-divider" />
-        <div id="vless" class="content active">
-            ${vlessConfigs}
-        </div>
-        <div id="trojan" class="content">
-            ${trojanConfigs}
-        </div>
-    </div>
-    <a href="https://t.me/Noir7R" class="watermark" target="_blank">@Noir7R</a>
-  </div>
-    <script>
-        function showContent(contentId) {
-            const contents = document.querySelectorAll('.content');
-            contents.forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById(contentId).classList.add('active');
-        }
-        function salinTeks() {
-            var teks = document.getElementById('teksAsli');
-            teks.select();
-            document.execCommand('copy');
-            alert('Teks telah disalin.');
-        }
-        function copytrojan(elementId) {
-            const text = document.getElementById(elementId).textContent;
-            navigator.clipboard.writeText(text)
-            .then(() => {
-            const alertBox = document.createElement('div');
-            alertBox.textContent = "Copied to clipboard!";
-            alertBox.style.position = 'fixed';
-            alertBox.style.bottom = '20px';
-            alertBox.style.right = '20px';
-            alertBox.style.backgroundColor = 'grey';
-            alertBox.style.color = '#fff';
-            alertBox.style.padding = '10px 20px';
-            alertBox.style.borderRadius = '5px';
-            alertBox.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-            alertBox.style.opacity = '0';
-            alertBox.style.transition = 'opacity 0.5s ease-in-out';
-            document.body.appendChild(alertBox);
-            setTimeout(() => {
-                alertBox.style.opacity = '1';
-            }, 100);
-            setTimeout(() => {
-                alertBox.style.opacity = '0';
-                setTimeout(() => {
-                    document.body.removeChild(alertBox);
-                }, 500);
-            }, 2000);
-        })
-        .catch((err) => {
-            console.error("Failed to copy to clipboard:", err);
-        });
-        }
-function fetchAndDisplayAlert(path) {
-    fetch(path)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(\`HTTP error! Status: \${response.status}\`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            const proxyStatus = data.proxyStatus || "Unknown status";
-            const alertBox = document.createElement('div');
-            alertBox.textContent = \`Proxy Status: \${proxyStatus}\`;
-            alertBox.style.position = 'fixed';
-            alertBox.style.bottom = '20px';
-            alertBox.style.right = '20px';
-            alertBox.style.backgroundColor = 'grey';
-            alertBox.style.color = '#fff';
-            alertBox.style.padding = '10px 20px';
-            alertBox.style.borderRadius = '5px';
-            alertBox.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-            alertBox.style.opacity = '0';
-            alertBox.style.transition = 'opacity 0.5s ease-in-out';
-            document.body.appendChild(alertBox);
-            
-            setTimeout(() => {
-                alertBox.style.opacity = '1';
-            }, 100);
-            
-            setTimeout(() => {
-                alertBox.style.opacity = '0';
-                setTimeout(() => {
-                    document.body.removeChild(alertBox);
-                }, 500);
-            }, 2000);
-        })
-        .catch((err) => {
-            alert("Failed to fetch data or invalid response.");
-        });
-}
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text)
-                .then(() => {
-                    const alertBox = document.createElement('div');
-                    alertBox.textContent = "Copied to clipboard!";
-                    alertBox.style.position = 'fixed';
-                    alertBox.style.bottom = '20px';
-                    alertBox.style.right = '20px';
-                    alertBox.style.backgroundColor = 'grey';
-                    alertBox.style.color = '#fff';
-                    alertBox.style.padding = '10px 20px';
-                    alertBox.style.borderRadius = '5px';
-                    alertBox.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-                    alertBox.style.opacity = '0';
-                    alertBox.style.transition = 'opacity 0.5s ease-in-out';
-                    document.body.appendChild(alertBox);
-                    setTimeout(() => {
-                        alertBox.style.opacity = '1';
-                    }, 100);
-                    setTimeout(() => {
-                        alertBox.style.opacity = '0';
-                        setTimeout(() => {
-                            document.body.removeChild(alertBox);
-                        }, 500);
-                    }, 2000);
-                })
-                .catch((err) => {
-                    console.error("Failed to copy to clipboard:", err);
-                });
-        }
-
-        function toggleConfig(button, show, hide) {
-            const configContent = button.nextElementSibling;
-            if (configContent.classList.contains('active')) {
-                configContent.classList.remove('active');
-                button.textContent = show;
-            } else {
-                configContent.classList.add('active');
-                button.textContent = hide;
-            }
-        }
-    <\/script>
-</body>
-</html>`;
-    return htmlConfigs;
-  } catch (error) {
-    return `An error occurred while generating the VLESS configurations. ${error}`;
   }
+</style>
+      </head>
+      <body>
+        <div class="popup">
+          <div class="tabs">
+            <input type="text" id="search" placeholder="Search by Country" oninput="filterTabs()">
+            ${listProxy
+              .map(
+                ({ country, isp }, index) => `
+                  <input type="radio" id="tab${index}" name="tab" ${index === 0 ? "checked" : ""}>
+                  <label for="tab${index}" class="tab-label" data-country="${country.toLowerCase()}">${country} - ${isp}</label>
+                `
+              )
+              .join("")}
+          </div>
+          <div class="tab-content">${listProxyElements}</div>
+          <a href="https://t.me/Noir7R" class="watermark" target="_blank">@Noir7R</a>
+        </div>
+        <script>
+          function filterTabs() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const labels = document.querySelectorAll('.tab-label');
+            labels.forEach(label => {
+              const isVisible = label.dataset.country.includes(query);
+              label.style.display = isVisible ? "block" : "none";
+            });
+          }
+
+          function copyToClipboard(text) {
+      navigator.clipboard.writeText(text)
+        .then(() => {
+          displayAlert("Successfully copied to clipboard!", '#FFD700');
+        })
+        .catch((err) => {
+          displayAlert("Failed to copy to clipboard: " + err, '#cc2222');
+        });
+    }
+    function displayAlert(message, backgroundColor) {
+      const alertBox = document.createElement('div');
+      alertBox.textContent = message;
+      Object.assign(alertBox.style, {
+          position: 'fixed',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: backgroundColor,
+          color: '#222',
+          padding: '5px 10px',
+          borderRadius: '5px',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
+          opacity: '0',
+          transition: 'opacity 0.5s ease-in-out',
+          zIndex: '1000'
+      });
+      document.body.appendChild(alertBox);
+
+      requestAnimationFrame(() => {
+          alertBox.style.opacity = '1';
+      });
+
+      setTimeout(() => {
+          alertBox.style.opacity = '0';
+          setTimeout(() => {
+              document.body.removeChild(alertBox);
+          }, 500);
+      }, 2000);
+    }
+
+          document.querySelectorAll('input[name="tab"]').forEach((tab, index) => {
+            tab.addEventListener('change', () => {
+              document.querySelectorAll('.content').forEach((content, idx) => {
+                content.classList.toggle("active", idx === index);
+              });
+            });
+          });
+        </script>
+      </body>
+    </html>
+  `;
 }
 function generateUUIDv4() {
   const randomValues = crypto.getRandomValues(new Uint8Array(16));
-  randomValues[6] = randomValues[6] & 15 | 64;
-  randomValues[8] = randomValues[8] & 63 | 128;
-  return [
-    randomValues[0].toString(16).padStart(2, "0"),
-    randomValues[1].toString(16).padStart(2, "0"),
-    randomValues[2].toString(16).padStart(2, "0"),
-    randomValues[3].toString(16).padStart(2, "0"),
-    randomValues[4].toString(16).padStart(2, "0"),
-    randomValues[5].toString(16).padStart(2, "0"),
-    randomValues[6].toString(16).padStart(2, "0"),
-    randomValues[7].toString(16).padStart(2, "0"),
-    randomValues[8].toString(16).padStart(2, "0"),
-    randomValues[9].toString(16).padStart(2, "0"),
-    randomValues[10].toString(16).padStart(2, "0"),
-    randomValues[11].toString(16).padStart(2, "0"),
-    randomValues[12].toString(16).padStart(2, "0"),
-    randomValues[13].toString(16).padStart(2, "0"),
-    randomValues[14].toString(16).padStart(2, "0"),
-    randomValues[15].toString(16).padStart(2, "0")
-  ].join("").replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, "$1-$2-$3-$4-$5");
+  randomValues[6] = (randomValues[6] & 0x0f) | 0x40;
+  randomValues[8] = (randomValues[8] & 0x3f) | 0x80;
+  return Array.from(randomValues)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, "$1-$2-$3-$4-$5");
 }
 
-
+function generatePASSWD(length = 12) {
+  const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let password = "";
+  const randomValues = crypto.getRandomValues(new Uint8Array(length));
+  
+  for (let i = 0; i < length; i++) {
+    password += charset[randomValues[i] % charset.length];
+  }
+  
+  return password;
+}
 async function vlessOverWSHandler(request) {
 	const webSocketPair = new WebSocketPair();
 	const [client, webSocket] = Object.values(webSocketPair);

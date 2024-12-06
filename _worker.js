@@ -321,7 +321,7 @@ async function getAllConfigVless(env, hostName, listProxy) {
               .join("")}
           </div>
           <div class="tab-content">${listProxyElements}</div>
-          <a href="https://t.me/Noir7R" class="watermark" target="_blank">@Noir7R</a>
+          <a href="https://m.facebook.com/ariy.tool/?__n=K" class="watermark" target="_blank">Gendar</a>
         </div>
         <script>
           function filterTabs() {
